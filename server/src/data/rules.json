@@ -1,0 +1,142 @@
+[
+  {
+    "term": "health drink",
+    "aliases": ["growth drink", "energy drink for kids"],
+    "status": "non-compliant",
+    "reason": "FSSAI has directed brands to remove 'health drink' from labels since it is not a legally defined food category.",
+    "source": "FSSAI advisory (PIB Press Release, 2024)"
+  },
+  {
+    "term": "100% natural",
+    "aliases": ["all natural", "purely natural", "farm fresh"],
+    "status": "needs-evidence",
+    "reason": "Vague purity/naturalness claims require scientific substantiation under FSSAI Advertising & Claims Regulations 2018.",
+    "source": "FSSAI Advertising & Claims Regulations 2018"
+  },
+  {
+    "term": "immunity boosting",
+    "aliases": ["boosts immunity", "immunity booster"],
+    "status": "needs-evidence",
+    "reason": "Health claims linking food to immunity require documented scientific proof and are frequently flagged in FSSAI audits.",
+    "source": "FSSAI Advertising & Claims Regulations 2018"
+  },
+  {
+    "term": "heart healthy",
+    "aliases": ["good for your heart", "heart friendly"],
+    "status": "needs-evidence",
+    "reason": "Disease-related health claims require scientific substantiation; unsubstantiated cardiac claims are a known audit failure category.",
+    "source": "FSSAI Advertising & Claims Regulations 2018"
+  },
+  {
+    "term": "diabetic friendly",
+    "aliases": ["safe for diabetics", "suitable for diabetics"],
+    "status": "needs-evidence",
+    "reason": "Disease-specific suitability claims require clinical substantiation, not just low added-sugar labeling.",
+    "source": "FSSAI Advertising & Claims Regulations 2018"
+  },
+  {
+    "term": "no added sugar",
+    "aliases": ["no sugar added", "unsweetened"],
+    "status": "context-needed",
+    "reason": "Legally valid claim, but product may still contain natural sugars, fruit concentrate, or sugar alcohols contributing to total sugar load.",
+    "source": "FSSAI Labelling & Display Regulations 2020"
+  },
+  {
+    "term": "honey",
+    "aliases": ["pure honey", "natural honey"],
+    "status": "high-risk-category",
+    "reason": "Honey has the highest documented claim non-compliance rate (80%) in recent Indian audits.",
+    "source": "LabelBlind 2025-26 audit"
+  },
+  {
+    "term": "ghee",
+    "aliases": ["pure ghee", "desi ghee"],
+    "status": "high-risk-category",
+    "reason": "Ghee products showed a 65.5% claim non-compliance rate in recent audits.",
+    "source": "LabelBlind 2025-26 audit"
+  },
+  {
+    "term": "herbal tea",
+    "aliases": ["herbal infusion", "wellness tea"],
+    "status": "high-risk-category",
+    "reason": "Tea and herbal infusion products showed a 54.3% claim non-compliance rate in recent audits.",
+    "source": "LabelBlind 2025-26 audit"
+  },
+  {
+    "term": "edible oil",
+    "aliases": ["cooking oil", "refined oil"],
+    "status": "high-risk-category",
+    "reason": "Edible oils showed a 52.9% claim non-compliance rate in recent audits.",
+    "source": "LabelBlind 2025-26 audit"
+  },
+  {
+    "term": "highlighted ingredient emphasis",
+    "aliases": ["loaded with", "made with real", "rich in"],
+    "status": "context-needed",
+    "reason": "When an ingredient is emphasized in words or images, FSSAI requires disclosure of its actual percentage (QUID) — check if this is shown.",
+    "source": "FSSAI Labelling & Display Regulations 2020 (QUID rule)"
+  },
+  {
+    "term": "multigrain",
+    "aliases": ["multi-grain", "whole grain blend"],
+    "status": "context-needed",
+    "reason": "Products branded 'multigrain' or 'digestive' may still be predominantly refined flour (maida) — check ingredient order.",
+    "source": "PIB / FSSAI labelling commentary"
+  },
+  {
+    "term": "cholesterol free",
+    "aliases": ["zero cholesterol", "no cholesterol"],
+    "status": "context-needed",
+    "reason": "A cholesterol-free claim does not mean low in saturated or trans fat — check those values separately.",
+    "source": "FSSAI Labelling & Display Regulations 2020"
+  },
+  {
+    "term": "high protein",
+    "aliases": ["protein rich", "protein packed"],
+    "status": "context-needed",
+    "reason": "Verify against actual grams of protein per serving on the nutrition panel rather than trusting the front-pack claim alone.",
+    "source": "General FSSAI labelling principle"
+  },
+  {
+    "term": "sugar free",
+    "aliases": ["zero sugar", "no sugar"],
+    "status": "context-needed",
+    "reason": "May still use sugar alcohols or artificial sweeteners with their own dietary considerations.",
+    "source": "FSSAI Labelling & Display Regulations 2020"
+  },
+  {
+    "term": "protein supplement",
+    "aliases": ["protein powder", "nutraceutical protein"],
+    "status": "needs-evidence",
+    "reason": "ICMR-NIN 2024 guidelines caution against routine reliance on protein supplements, citing potential kidney and bone risks with prolonged high intake.",
+    "source": "ICMR-NIN Dietary Guidelines 2024"
+  },
+  {
+    "term": "low fat",
+    "aliases": ["reduced fat", "light"],
+    "status": "context-needed",
+    "reason": "Low-fat products may compensate with added sugar for taste — check total sugar alongside the fat claim.",
+    "source": "General FSSAI labelling principle"
+  },
+  {
+    "term": "fortified",
+    "aliases": ["+F", "vitamin enriched", "mineral fortified"],
+    "status": "context-needed",
+    "reason": "Genuine fortification requires the FSSAI +F logo/endorsement — branding alone does not confirm fortification.",
+    "source": "FSSAI Fortification guidelines"
+  },
+  {
+    "term": "organic",
+    "aliases": ["certified organic"],
+    "status": "needs-evidence",
+    "reason": "Organic claims require certification under applicable Indian organic standards — verify certification is stated, not just implied.",
+    "source": "FSSAI labelling commentary"
+  },
+  {
+    "term": "natural flavour",
+    "aliases": ["natural flavouring", "nature identical flavour"],
+    "status": "context-needed",
+    "reason": "\"Natural flavour\" is a compound ingredient term that can include multiple additives — the label doesn't disclose full composition.",
+    "source": "FSSAI Labelling & Display Regulations 2020"
+  }
+]

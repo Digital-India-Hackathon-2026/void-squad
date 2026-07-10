@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-bg-primary text-white min-h-screen;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #0B0F19; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+}
+
+@layer components {
+  /* Glass card */
+  .glass-card {
+    @apply bg-bg-card border border-border-subtle rounded-2xl backdrop-blur-sm;
+  }
+
+  /* Input field */
+  .input-field {
+    @apply w-full bg-bg-secondary border border-border-subtle rounded-xl px-4 py-3 text-white placeholder-gray-500
+           focus:outline-none focus:border-accent-blue focus:ring-1 focus:ring-accent-blue
+           transition-all duration-200;
+  }
+
+  /* Primary button */
+  .btn-primary {
+    @apply w-full bg-gradient-to-r from-accent-blue to-accent-purple text-white font-semibold
+           py-3 px-6 rounded-xl transition-all duration-200
+           hover:opacity-90 active:scale-[0.98]
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100;
+  }
+
+  /* Risk band colors */
+  .risk-low    { @apply text-accent-green; }
+  .risk-moderate { @apply text-accent-amber; }
+  .risk-high   { @apply text-accent-red; }
+
+  .risk-bg-low    { @apply bg-accent-green/10 border-accent-green/30; }
+  .risk-bg-moderate { @apply bg-accent-amber/10 border-accent-amber/30; }
+  .risk-bg-high   { @apply bg-accent-red/10 border-accent-red/30; }
+
+  /* Status badge */
+  .badge {
+    @apply inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wide;
+  }
+  .badge-red    { @apply bg-accent-red/15 text-accent-red border border-accent-red/30; }
+  .badge-amber  { @apply bg-accent-amber/15 text-accent-amber border border-accent-amber/30; }
+  .badge-blue   { @apply bg-accent-blue/15 text-accent-blue border border-accent-blue/30; }
+  .badge-orange { @apply bg-orange-500/15 text-orange-400 border border-orange-500/30; }
+  .badge-green  { @apply bg-accent-green/15 text-accent-green border border-accent-green/30; }
+
+  /* Page container - mobile-first centered */
+  .page-container {
+    @apply max-w-md mx-auto px-4 py-6 min-h-screen;
+  }
+}
+
+/* Smooth ring animation for RiskRing */
+@keyframes ring-fill {
+  from { stroke-dashoffset: 339.29; }
+}
