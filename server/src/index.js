@@ -40,11 +40,12 @@ if (!process.env.NVIDIA_API_KEY || process.env.NVIDIA_API_KEY.startsWith('REPLAC
 
 // ─── Middleware ────────────────────────────────────────────────────────────────
 app.use(cors({
-  // In production the user did not give us an explicit origin list — omit rather than disable
-  // so same-origin/curl/cron requests still work; CORS header is then not added cross-origin.
-  origin: process.env.NODE_ENV === 'production' ? true : ['http://localhost:5173', 'http://localhost:3000'],
+  origin: process.env.NODE_ENV === 'production'
+    ? (process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(s => s.trim()) : true)
+    : ['http://localhost:5173', 'http://localhost:3000'],
   credentials: true,
 }));
+
 app.use(express.json({ limit: '20mb' })); // large for base64 images
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
