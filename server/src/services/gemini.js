@@ -1,6 +1,6 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const GEMINI_TIMEOUT_MS = 10000; // 10 seconds per PRD
+const GEMINI_TIMEOUT_MS = 60000; // 60 seconds (image extraction can be slow)
 
 /**
  * Wraps a promise with an explicit timeout.
@@ -39,7 +39,7 @@ async function analyzeScan(frontImageBase64, backImageBase64, userProfile, rules
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   // Build image parts
   const imageParts = [
@@ -106,7 +106,7 @@ async function proceedAnywayAnalysis(scanResult, userProfile) {
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   const prompt = buildProceedAnywayPrompt(scanResult, userProfile);
 
@@ -207,28 +207,32 @@ Return ONLY a single JSON object matching this exact structure, with no extra co
 }
 
 function buildProceedAnywayPrompt(scanResult, userProfile) {
-  return `The user has already seen a risk assessment for a product and has explicitly chosen to consume it anyway. Do not repeat warnings, do not try to dissuade them, and do not re-summarize the risk. Instead, generate practical, specific harm-reduction guidance.
+  return `The user has already seen a risk assessment for a product and has explicitly chosen to
+consume it anyway. Do not repeat warnings, do not try to dissuade them, and do not
+re-summarize the risk. Instead, generate practical, specific harm-reduction guidance.
 
-Original scan result:
-${JSON.stringify(scanResult, null, 2)}
+Original scan result: ${JSON.stringify(scanResult, null, 2)}
+User's health profile: ${JSON.stringify(userProfile, null, 2)}
 
-User's health profile:
-${JSON.stringify(userProfile, null, 2)}
+Generate guidance across four categories, each grounded in the SPECIFIC nutrients,
+ingredients, or claims flagged in the original scan result — not generic wellness
+advice unrelated to this actual product:
 
-Generate guidance across four categories, each grounded in the SPECIFIC nutrients, ingredients, or claims flagged in the original scan result — not generic wellness advice unrelated to this actual product:
 - immediate_actions: 2-3 things to do right when/immediately after eating this product
 - same_day: 2-3 adjustments to make for the rest of the day
 - next_meal: 2-3 suggestions for rebalancing at the next meal
 - behavioral_corrections: 1-2 longer-term pattern notes tied to the user's stated goals
 
-For every item, include a short "why" explanation that ties back to a specific nutrient/claim from the original scan result.
+For every item, include a short "why" explanation that ties back to a specific
+nutrient/claim from the original scan result (e.g. "This product was high in added
+sugar (X% of your daily limit), so...").
 
 Return ONLY this JSON structure, no extra commentary:
 {
-  "immediate_actions": [{ "action": "", "why": "" }],
-  "same_day": [{ "action": "", "why": "" }],
-  "next_meal": [{ "action": "", "why": "" }],
-  "behavioral_corrections": [{ "action": "", "why": "" }]
+  "immediate_actions": [{ "action": "string", "why": "string" }],
+  "same_day": [{ "action": "string", "why": "string" }],
+  "next_meal": [{ "action": "string", "why": "string" }],
+  "behavioral_corrections": [{ "action": "string", "why": "string" }]
 }`;
 }
 

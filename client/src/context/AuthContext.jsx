@@ -1,9 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { authAPI } from '../api/index.js';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);     // { userId, name, email }
+  const [user, setUser] = useState(null);   // { userId, name, email }
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -12,22 +13,48 @@ export function AuthProvider({ children }) {
     const storedToken = localStorage.getItem('decode_token');
     const storedUser = localStorage.getItem('decode_user');
     if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      try {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      } catch {
+        localStorage.removeItem('decode_token');
+        localStorage.removeItem('decode_user');
+      }
     }
     setLoading(false);
   }, []);
 
-  function login(userData, jwtToken) {
-    const userObj = {
-      userId: userData.userId,
-      name: userData.name || '',
-      email: userData.email || '',
-    };
+  function _persist(userObj, jwtToken) {
     setUser(userObj);
     setToken(jwtToken);
     localStorage.setItem('decode_token', jwtToken);
     localStorage.setItem('decode_user', JSON.stringify(userObj));
+  }
+
+  // login(email, password) — calls API then persists session
+  async function login(email, password) {
+    const res = await authAPI.login({ email, password });
+    const { userId, name, token } = res.data;
+    const userObj = {
+      userId,
+      name: name || '',
+      email,
+    };
+    _persist(userObj, token);
+    return userObj;
+  }
+
+  // register(name, email, password)
+  async function register(name, email, password) {
+    const res = await authAPI.signup({ name, email, password });
+    const { userId, token } = res.data;
+    const userObj = {
+      userId,
+      name,
+      email,
+    };
+    _persist(userObj, token);
+    return userObj;
   }
 
   function logout() {
@@ -38,7 +65,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

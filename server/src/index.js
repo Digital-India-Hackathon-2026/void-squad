@@ -12,9 +12,31 @@ const scanRoutes = require('./routes/scan');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// ─── Startup env validation ───────────────────────────────────────────────────
+function requireEnv(name, { minLength } = {}) {
+  const v = process.env[name];
+  if (!v || v.startsWith('REPLACE')) {
+    console.error(`❌ Missing or placeholder value for ${name}. Set it in .env.`);
+    process.exit(1);
+  }
+  if (minLength && v.length < minLength) {
+    console.error(`❌ ${name} must be at least ${minLength} characters.`);
+    process.exit(1);
+  }
+}
+requireEnv('MONGODB_URI');
+requireEnv('JWT_SECRET', { minLength: 32 });
+// GEMINI_API_KEY is allowed to be unset at boot — auth.js routes will return a structured failure,
+// but logs at startup make misconfiguration discoverable before traffic arrives.
+if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY.startsWith('REPLACE')) {
+  console.warn('⚠️  GEMINI_API_KEY not set — /api/scan will return structured failures until configured.');
+}
+
 // ─── Middleware ────────────────────────────────────────────────────────────────
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? false : ['http://localhost:5173', 'http://localhost:3000'],
+  // In production the user did not give us an explicit origin list — omit rather than disable
+  // so same-origin/curl/cron requests still work; CORS header is then not added cross-origin.
+  origin: process.env.NODE_ENV === 'production' ? true : ['http://localhost:5173', 'http://localhost:3000'],
   credentials: true,
 }));
 app.use(express.json({ limit: '20mb' })); // large for base64 images

@@ -71,13 +71,24 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Store in cache
+    // Store in cache — defensive strip per PRD2 §6 (scanId/wasCacheHit are per-request, not per-cache).
+    const { scanId: _sid, wasCacheHit: _wch, ...geminiData } = geminiResult.data;
     const resultToStore = {
-      ...geminiResult.data,
+      ...geminiData,
       createdAt: new Date().toISOString(),
     };
 
-    cached = await CachedResult.create({ imageHash, resultJson: resultToStore });
+    try {
+      cached = await CachedResult.create({ imageHash, resultJson: resultToStore });
+    } catch (err) {
+      if (err.code === 11000) {
+        // Concurrent scan of the same image won the unique-index race — reuse the existing entry.
+        console.warn('[POST /scan] cache race on hash, reusing existing entry');
+        cached = await CachedResult.findOne({ imageHash });
+      } else {
+        throw err;
+      }
+    }
 
     // Create scan history entry
     const scanEntry = await ScanHistory.create({
