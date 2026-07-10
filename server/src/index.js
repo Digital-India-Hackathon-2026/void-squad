@@ -8,6 +8,8 @@ const seedRules = require('./services/seeder');
 const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
 const scanRoutes = require('./routes/scan');
+const chatRoutes = require('./routes/chat');
+const translateRoutes = require('./routes/translate');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -29,8 +31,12 @@ requireEnv('JWT_SECRET', { minLength: 32 });
 // GEMINI_API_KEY is allowed to be unset at boot — auth.js routes will return a structured failure,
 // but logs at startup make misconfiguration discoverable before traffic arrives.
 if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY.startsWith('REPLACE')) {
-  console.warn('⚠️  GEMINI_API_KEY not set — /api/scan will return structured failures until configured.');
+  console.warn('⚠️  GEMINI_API_KEY not set — /api/scan and /api/translate will return structured failures until configured.');
 }
+if (!process.env.NVIDIA_API_KEY || process.env.NVIDIA_API_KEY.startsWith('REPLACE')) {
+  console.warn('NVIDIA_API_KEY not set - /api/chat will return structured failures until configured.');
+}
+
 
 // ─── Middleware ────────────────────────────────────────────────────────────────
 app.use(cors({
@@ -46,6 +52,8 @@ app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/scan', scanRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/translate', translateRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));

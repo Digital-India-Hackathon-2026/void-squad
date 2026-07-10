@@ -42,14 +42,16 @@ async function analyzeScan(frontImageBase64, backImageBase64, userProfile, rules
   const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   // Build image parts
-  const imageParts = [
-    {
+  const imageParts = [];
+
+  if (frontImageBase64) {
+    imageParts.push({
       inlineData: {
         mimeType: 'image/jpeg',
         data: frontImageBase64.replace(/^data:image\/\w+;base64,/, ''),
       },
-    },
-  ];
+    });
+  }
 
   if (backImageBase64) {
     imageParts.push({
@@ -154,10 +156,19 @@ ${JSON.stringify(rules, null, 2)}
 For each claim in front_claims, check whether it matches (exactly, or by meaning via its listed aliases) any pattern in the list above. For each match, return: the claim text as it appeared, the matched status, the reason, and the source. If a claim does not match any pattern in the list, do not include it in claim_compliance — do not invent a new compliance judgment beyond what is explicitly in the rules list.
 
 STEP 3 — QUID / REALITY VS MARKETING
-For each item in highlighted_ingredients:
-- If quid_percentage contains an explicit value for it, state that percentage directly in a plain sentence.
-- If no explicit percentage exists, find its position in the ingredients list (position 1 = highest quantity) and generate a sentence noting its rank out of the total ingredient count, with a plain-English implication about relative quantity.
-- If a highlighted ingredient ranks near the top (position 1-2), phrase the statement as a positive confirmation rather than implying deception.
+Analyze ingredient ordering to expose the gap between what is marketed and what is actually in the product.
+
+Part A — Highlighted Ingredients:
+For each item in highlighted_ingredients (ingredients the brand emphasizes on the front pack or in its name):
+- If quid_percentage contains an explicit percentage, state it directly in a plain sentence.
+- If no explicit percentage exists, find its position in the full ingredients list (position 1 = most by weight per Indian labeling law). Generate a sentence noting its rank out of the total ingredient count with a plain-English implication.
+- If the ingredient ranks in position 1-2, phrase positively. If it ranks in the bottom half, call out the discrepancy.
+
+Part B — Always include top ingredient exposure:
+Regardless of whether highlighted_ingredients is populated, always include the top 4-5 ingredients from the full ingredients list in quid_analysis. For each of these top ingredients:
+- Write a brief, factual statement about what this ingredient being near the top means in plain English (e.g., \"Refined wheat flour is the primary ingredient — it's a high-glycemic refined carb\", \"Palm oil is the 2nd ingredient, meaning this product is high in saturated fat\", \"Sugar ranks 3rd, indicating substantial added sugar content\").
+- Skip duplicates if an ingredient was already covered in Part A.
+
 
 STEP 4 — PERSONALIZATION
 Here is the user's health profile:
@@ -236,4 +247,60 @@ Return ONLY this JSON structure, no extra commentary:
 }`;
 }
 
-module.exports = { analyzeScan, proceedAnywayAnalysis };
+
+/**
+ * Translates a structured JSON object of text fields into the target language.
+ * Preserves JSON structure; only translates string values.
+ *
+ * @param {object} fields        — Structured object with string values to translate
+ * @param {string} languageName  — Full language name e.g. "Hindi"
+ * @param {string} languageCode  — ISO 639-1 code e.g. "hi"
+ * @param {string[]} sources     — Optional list of FSSAI/regulatory source labels to skip translation
+ */
+async function translateTextFields(fields, languageName, languageCode, sources = []) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || apiKey.startsWith('REPLACE')) {
+    return { success: false, errorType: 'api_error', message: 'Gemini API key is not configured.' };
+  }
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+  const sourceNote = sources.length > 0
+    ? `Do NOT translate or modify any of the following regulatory/source strings, keep them exactly as-is: ${JSON.stringify(sources)}.`
+    : '';
+
+  const prompt = `You are a professional translator. Translate every string value in the following JSON from English to ${languageName} (ISO 639-1 code: ${languageCode}).
+
+Rules:
+- Only translate string values. Preserve all JSON structure, keys, arrays, and non-string values exactly.
+- Keep technical medical terms or allergen names in English if they have no accurate ${languageName} equivalent.
+- Do NOT add any commentary, explanation, or markdown — return ONLY the translated JSON object.
+${sourceNote}
+
+Input JSON:
+${JSON.stringify(fields, null, 2)}
+
+Return ONLY the translated JSON object:`;
+
+  try {
+    const result = await withTimeout(
+      model.generateContent(prompt),
+      GEMINI_TIMEOUT_MS
+    );
+
+    const text = result.response.text();
+    const parsed = parseGeminiJson(text);
+    return { success: true, data: parsed };
+  } catch (err) {
+    if (err.message === 'GEMINI_TIMEOUT') {
+      return { success: false, errorType: 'timeout', message: 'Translation timed out.' };
+    }
+    if (err instanceof SyntaxError) {
+      return { success: false, errorType: 'parse_error', message: 'Invalid translation response format.' };
+    }
+    return { success: false, errorType: 'api_error', message: err.message || 'Translation failed.' };
+  }
+}
+
+module.exports = { analyzeScan, proceedAnywayAnalysis, translateTextFields };

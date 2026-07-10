@@ -24,8 +24,8 @@ router.post('/', async (req, res) => {
   const { frontImageBase64, backImageBase64 } = req.body;
   const userId = req.userId;
 
-  if (!frontImageBase64) {
-    return res.status(400).json({ success: false, message: 'Front pack image is required.' });
+  if (!backImageBase64) {
+    return res.status(400).json({ success: false, message: 'Ingredients (Back) image is required.' });
   }
 
   try {

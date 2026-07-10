@@ -268,13 +268,13 @@ export default function ScanPage() {
   }
 
   async function handleAnalyse() {
-    if (!frontBase64) return;
+    if (!backBase64) return;
     setError('');
     setAnalysing(true);
     try {
       const res = await scanAPI.analyze({
-        frontImageBase64: frontBase64,
-        ...(backBase64 ? { backImageBase64: backBase64 } : {}),
+        backImageBase64: backBase64,
+        ...(frontBase64 ? { frontImageBase64: frontBase64 } : {}),
       });
       const data = res.data;
       if (!data.success) {
@@ -315,37 +315,40 @@ export default function ScanPage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 px-safe-margin py-lg pb-[100px] max-w-2xl mx-auto w-full flex flex-col gap-lg">
-        <div className="text-center">
-          <h1 className="font-headline-lg text-headline-lg text-on-background mb-base">Analyse Product</h1>
-          <p className="font-body-md text-body-md text-on-surface-variant">
+      <main className="flex-1 px-safe-margin py-lg pb-[100px] w-full max-w-[1200px] mx-auto md:pl-[120px] lg:pl-[140px] flex flex-col gap-lg">
+        <div className="text-center md:text-left mb-4">
+          <h1 className="font-headline-lg text-[32px] md:text-[44px] text-on-background mb-base text-balance tracking-tight">Analyse Product</h1>
+          <p className="font-body-md md:text-[18px] text-on-surface-variant">
             Upload images to decode ingredients and health impact.
           </p>
         </div>
 
-        {/* Front of Pack */}
-        <ImageSlot
-          label="Front of Pack"
-          badge="Required"
-          badgeColor="text-primary"
-          icon="package"
-          required
-          preview={frontPreview}
-          onOpen={() => openSheet('front')}
-          onRemove={() => { setFrontPreview(null); setFrontBase64(null); }}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-md md:gap-xl">
 
         {/* Back of Pack */}
         <ImageSlot
-          label="Back of Pack"
-          badge="Optional • Better Results"
-          badgeColor="text-on-surface-variant"
+          label="Ingredients / Back"
+          badge="Required"
+          badgeColor="text-primary"
           icon="receipt_long"
-          required={false}
+          required
           preview={backPreview}
           onOpen={() => openSheet('back')}
           onRemove={() => { setBackPreview(null); setBackBase64(null); }}
         />
+
+        {/* Front of Pack */}
+        <ImageSlot
+          label="Front of Pack"
+          badge="Optional"
+          badgeColor="text-on-surface-variant"
+          icon="package"
+          required={false}
+          preview={frontPreview}
+          onOpen={() => openSheet('front')}
+          onRemove={() => { setFrontPreview(null); setFrontBase64(null); }}
+        />
+        </div>
 
         {/* Error */}
         <AnimatePresence>
@@ -365,11 +368,11 @@ export default function ScanPage() {
         {/* Analyse Button */}
         <div className="mt-auto flex flex-col items-center gap-sm">
           <motion.button
-            disabled={!frontBase64}
+            disabled={!backBase64}
             onClick={handleAnalyse}
-            whileTap={{ scale: frontBase64 ? 0.97 : 1 }}
+            whileTap={{ scale: backBase64 ? 0.97 : 1 }}
             className={`w-full max-w-md py-4 rounded-xl font-headline-md text-[18px] font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
-              frontBase64
+              backBase64
                 ? 'bg-gradient-to-r from-primary to-primary-fixed-dim text-on-primary-fixed shadow-[0_0_20px_rgba(78,222,163,0.3)] hover:shadow-[0_0_30px_rgba(78,222,163,0.5)] cursor-pointer'
                 : 'bg-surface-variant text-on-surface-variant cursor-not-allowed opacity-70'
             }`}
@@ -377,9 +380,9 @@ export default function ScanPage() {
             <span className="material-symbols-outlined">auto_awesome</span>
             Analyse Product
           </motion.button>
-          {!frontBase64 && (
+          {!backBase64 && (
             <p className="font-label-caps text-label-caps text-on-surface-variant text-center">
-              Requires Front of Pack image
+              Requires Ingredients (Back) image
             </p>
           )}
         </div>

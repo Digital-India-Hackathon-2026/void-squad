@@ -1,7 +1,20 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { scanAPI } from '../api/index.js';
+import { scanAPI, translateAPI } from '../api/index.js';
+
+const LANGUAGE_OPTIONS = [
+  { code: 'en', label: 'English' },
+  { code: 'hi', label: 'Hindi' },
+  { code: 'te', label: 'Telugu' },
+  { code: 'ta', label: 'Tamil' },
+  { code: 'bn', label: 'Bengali' },
+  { code: 'mr', label: 'Marathi' },
+  { code: 'gu', label: 'Gujarati' },
+  { code: 'kn', label: 'Kannada' },
+  { code: 'ml', label: 'Malayalam' },
+  { code: 'pa', label: 'Punjabi' },
+];
 
 // ── Risk config ────────────────────────────────────────────────────────────────
 const RISK = {
@@ -140,6 +153,12 @@ function ClaimCard({ claim, index }) {
 
 // ── QUID card ─────────────────────────────────────────────────────────────
 function QuidCard({ item, index }) {
+  // Infer rank from statement text if position is mentioned
+  const rankMatch = item.statement?.match(/(1st|2nd|3rd|\d+th|#\d+|position \d+|rank \d+)/i);
+  const isHighlighted = item.highlighted === true || index < 2;
+  const rankColor = index === 0 ? 'text-error bg-error/10 border-error/20'
+    : index === 1 ? 'text-secondary bg-secondary/10 border-secondary/20'
+    : 'text-on-surface-variant bg-white/5 border-white/10';
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -148,10 +167,10 @@ function QuidCard({ item, index }) {
       transition={{ delay: index * 0.06 }}
       className="level-1-surface rounded-xl p-sm flex gap-3 items-start"
     >
-      <div className="w-8 h-8 rounded-full bg-tertiary-container/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-        <span className="material-symbols-outlined text-tertiary text-sm">difference</span>
+      <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 font-metric-label text-[11px] font-bold border ${rankColor}`}>
+        #{index + 1}
       </div>
-      <div>
+      <div className="flex-1 min-w-0">
         <span className="font-metric-label text-metric-label text-on-background block">{item.ingredient}</span>
         <p className="font-body-md text-[13px] text-on-surface-variant mt-0.5 leading-snug">{item.statement}</p>
       </div>
@@ -363,6 +382,11 @@ export default function ResultsPage() {
   const [proceedOpen, setProceedOpen] = useState(false);
   const fetchRef = useRef(false);
 
+  // Translation State
+  const [targetLang, setTargetLang] = useState('en');
+  const [translatedData, setTranslatedData] = useState(null);
+  const [translating, setTranslating] = useState(false);
+
   async function fetchScan() {
     setLoading(true);
     setError('');
@@ -386,6 +410,30 @@ export default function ResultsPage() {
     fetchRef.current = true;
     fetchScan();
   }, [scanId]);
+
+  async function handleTranslate(e) {
+    const lang = e.target.value;
+    setTargetLang(lang);
+    if (lang === 'en') {
+      setTranslatedData(null);
+      return;
+    }
+    setTranslating(true);
+    try {
+      const res = await translateAPI.translateScan({
+        scanId,
+        targetLanguage: lang,
+        includeProceedAnyway: false
+      });
+      if (res.data?.success) {
+        setTranslatedData(res.data);
+      }
+    } catch (err) {
+      console.error('Translation failed', err);
+    } finally {
+      setTranslating(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -418,11 +466,13 @@ export default function ResultsPage() {
   const rawBand = data.risk_band || 'low';
   const band = rawBand.charAt(0).toUpperCase() + rawBand.slice(1).toLowerCase();
   const cfg = RISK[band] || RISK.Low;
-  const verdict = data.personalized_verdict;
+  
+  const tFields = translatedData?.translatedFields || {};
+  const verdict = { ...data.personalized_verdict, ...tFields.personalized_verdict };
   const nutrition = data.product?.nutrition_per_serving ?? {};
-  const claims = data.claim_compliance ?? [];
-  const quid = data.quid_analysis ?? [];
-  const insights = data.key_risk_insights ?? [];
+  const claims = (data.claim_compliance ?? []).map((c, i) => ({ ...c, ...tFields.claim_compliance?.[i] }));
+  const quid = (data.quid_analysis ?? []).map((q, i) => ({ ...q, ...tFields.quid_analysis?.[i] }));
+  const insights = (data.key_risk_insights ?? []).map((ins, i) => ({ ...ins, ...tFields.key_risk_insights?.[i] }));
   const alternatives = data.alternatives ?? [];
   const confidence = data.confidence;
 
@@ -443,13 +493,35 @@ export default function ResultsPage() {
           <span className="material-symbols-outlined text-primary">arrow_back</span>
         </button>
         <div className="font-headline-md text-headline-md font-bold text-primary tracking-tight">DeCode.it</div>
-        <div className="w-10" />
+        <div className="flex items-center gap-2">
+          {translating && <span className="material-symbols-outlined animate-spin text-on-surface-variant text-sm">sync</span>}
+          <div className="relative">
+            <select
+              value={targetLang}
+              onChange={handleTranslate}
+              disabled={translating}
+              className="appearance-none bg-white/5 border border-white/10 rounded-full px-3 py-1.5 pr-8 text-on-background font-body-md text-sm outline-none focus:border-primary/50 transition-colors cursor-pointer"
+            >
+              {LANGUAGE_OPTIONS.map(lang => (
+                <option key={lang.code} value={lang.code} className="bg-background text-on-background">
+                  {lang.label}
+                </option>
+              ))}
+            </select>
+            <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant text-[16px] pointer-events-none">
+              expand_more
+            </span>
+          </div>
+        </div>
       </header>
 
-      <main className="flex-grow px-safe-margin space-y-lg pb-20 pt-md max-w-2xl mx-auto w-full">
-
-        {/* ── 1. Risk Score Ring ─────────────────────────────────────────── */}
-        <section className="flex flex-col items-center justify-center py-md">
+      <main className="flex-grow px-safe-margin pb-20 pt-md w-full max-w-[1200px] mx-auto md:pl-[120px] lg:pl-[140px]">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-8 xl:gap-16 items-start">
+          
+          {/* Left Column: Sticky Summary */}
+          <div className="flex flex-col gap-6 md:sticky md:top-24">
+            {/* ── 1. Risk Score Ring ─────────────────────────────────────────── */}
+            <section className="flex flex-col items-center justify-center py-md">
           <RiskRing score={data.risk_score} band={band} />
           <div className="mt-sm text-center">
             <span
@@ -508,7 +580,10 @@ export default function ResultsPage() {
             Proceed Anyway — Get Harm Reduction Guide
           </motion.button>
         )}
+          </div>
 
+          {/* Right Column: Detailed Breakdown */}
+          <div className="flex flex-col gap-10">
         {/* ── 4. Key Risk Insights ───────────────────────────────────────── */}
         {insights.length > 0 && (
           <section>
@@ -579,10 +654,24 @@ export default function ResultsPage() {
               Reality vs Marketing
             </h3>
             <p className="font-body-md text-[13px] text-on-surface-variant mb-md">
-              Ingredients listed by actual weight, not marketing emphasis.
+              Ingredients ranked by actual weight on label — #1 is the most abundant.
             </p>
             <div className="space-y-xs">
               {quid.map((q, i) => <QuidCard key={i} item={q} index={i} />)}
+            </div>
+          </section>
+        )}
+        {quid.length === 0 && (
+          <section>
+            <h3 className="font-headline-md text-headline-md mb-xs flex items-center gap-2">
+              <span className="material-symbols-outlined text-tertiary">difference</span>
+              Reality vs Marketing
+            </h3>
+            <div className="glass-panel rounded-xl p-4 flex items-center gap-3 border border-dashed border-white/10">
+              <span className="material-symbols-outlined text-on-surface-variant/40 text-2xl">info</span>
+              <p className="font-body-md text-[13px] text-on-surface-variant">
+                No ingredient ordering data extracted — try scanning with a clearer photo of the ingredients list.
+              </p>
             </div>
           </section>
         )}
@@ -649,6 +738,8 @@ export default function ResultsPage() {
             Scan Another Product
           </motion.button>
         </section>
+          </div>
+        </div>
       </main>
 
       {/* Proceed Anyway Drawer */}

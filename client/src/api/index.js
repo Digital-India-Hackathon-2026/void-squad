@@ -51,4 +51,15 @@ export const scanAPI = {
   getById: (scanId) => api.get(`/scan/${scanId}`),
 };
 
+
+// Chat
+export const chatAPI = {
+  send: (data) => api.post('/chat', data),
+};
+
+// Translation
+export const translateAPI = {
+  translateScan: (data) => api.post('/translate', data),
+};
+
 export default api;

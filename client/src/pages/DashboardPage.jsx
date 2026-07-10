@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { scanAPI, profileAPI } from '../api/index.js';
 import BottomNavBar from '../components/shared/BottomNavBar';
+import ChatWidget from '../components/chat/ChatWidget';
 
 const RISK_CONFIG = {
   Low: { color: 'text-primary', bg: 'bg-primary/15', border: 'border-primary/30', label: 'Safe' },
@@ -12,10 +13,11 @@ const RISK_CONFIG = {
 };
 
 function RiskMini({ score, band }) {
-  const cfg = RISK_CONFIG[band] || RISK_CONFIG.Low;
+  const normalizedBand = band ? band.charAt(0).toUpperCase() + band.slice(1).toLowerCase() : 'Low';
+  const cfg = RISK_CONFIG[normalizedBand] || RISK_CONFIG.Low;
   const circumference = 2 * Math.PI * 14;
   const offset = circumference - (Math.min(score ?? 0, 100) / 100) * circumference;
-  const strokeColor = band === 'High' ? '#ffb4ab' : band === 'Moderate' ? '#ffb95f' : '#4edea3';
+  const strokeColor = normalizedBand === 'High' ? '#ffb4ab' : normalizedBand === 'Moderate' ? '#ffb95f' : '#4edea3';
   return (
     <div className="flex items-center gap-3">
       <div className={`px-2 py-0.5 rounded-md ${cfg.bg} border ${cfg.border}`}>
@@ -104,7 +106,7 @@ export default function DashboardPage() {
   const greeting = user?.name ? `Hello, ${user.name.split(' ')[0]}!` : 'Hello!';
 
   return (
-    <div className="bg-background min-h-dvh flex flex-col font-body-md overflow-x-hidden pb-24 md:pb-0">
+    <div className="bg-transparent min-h-dvh flex flex-col font-body-md overflow-x-hidden pb-24 md:pb-0">
       {/* Top App Bar */}
       <header className="bg-background/80 backdrop-blur-xl border-b border-white/10 sticky top-0 z-[60] flex items-center justify-between px-safe-margin h-16 w-full">
         <div className="font-headline-md text-headline-md font-bold text-primary tracking-tight">
@@ -122,7 +124,7 @@ export default function DashboardPage() {
       </header>
 
       {/* Main */}
-      <main className="flex-1 px-safe-margin pt-md pb-xl max-w-2xl mx-auto w-full">
+      <main className="flex-1 px-safe-margin pt-md pb-xl w-full max-w-[1200px] mx-auto md:pl-[120px] lg:pl-[140px]">
         {/* Welcome Header */}
         <motion.div
           initial={{ opacity: 0, y: -12 }}
@@ -131,8 +133,8 @@ export default function DashboardPage() {
           className="flex justify-between items-center mb-lg"
         >
           <div>
-            <h1 className="font-headline-lg text-headline-lg text-on-background">{greeting}</h1>
-            <p className="font-body-md text-body-md text-on-surface-variant mt-1">
+            <h1 className="font-headline-lg text-[32px] md:text-[44px] text-balance tracking-tight text-on-background leading-tight">{greeting}</h1>
+            <p className="font-body-md text-body-md md:text-body-lg text-on-surface-variant mt-2">
               Ready to decode your food today?
             </p>
           </div>
@@ -163,8 +165,11 @@ export default function DashboardPage() {
           )}
         </AnimatePresence>
 
-        {/* Bento Action Cards */}
-        <div className="grid grid-cols-2 gap-md mb-xl">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8 xl:gap-12 items-start">
+          
+          <div className="flex flex-col gap-8">
+            {/* Bento Action Cards */}
+            <div className="grid grid-cols-2 gap-4 md:gap-6">
           {/* Scan Card */}
           <motion.div
             whileHover={{ scale: 1.02 }}
@@ -229,10 +234,11 @@ export default function DashboardPage() {
               </p>
             </div>
           </motion.div>
-        </div>
+            </div>
+          </div>
 
-        {/* Recent Scans */}
-        <div>
+          {/* Recent Scans */}
+          <div className="glass-panel p-6 md:p-8 rounded-[24px]">
           <div className="flex justify-between items-center mb-sm">
             <h3 className="font-headline-md text-headline-md text-on-background">Recent Scans</h3>
           </div>
@@ -271,11 +277,13 @@ export default function DashboardPage() {
                 />
               ))}
             </div>
-          )}
+            )}
+          </div>
         </div>
       </main>
 
       <BottomNavBar />
+      <ChatWidget />
     </div>
   );
 }
