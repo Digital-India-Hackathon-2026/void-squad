@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://void-squad.onrender.com/api',
   timeout: 60000, // 60s for scan requests (Gemini can be slow)
   headers: { 'Content-Type': 'application/json' },
 });
