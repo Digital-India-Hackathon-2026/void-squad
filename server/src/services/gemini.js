@@ -39,7 +39,7 @@ async function analyzeScan(frontImageBase64, backImageBase64, userProfile, rules
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
 
   // Build image parts
   const imageParts = [];
@@ -108,7 +108,7 @@ async function proceedAnywayAnalysis(scanResult, userProfile) {
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
 
   const prompt = buildProceedAnywayPrompt(scanResult, userProfile);
 
@@ -264,7 +264,7 @@ async function translateTextFields(fields, languageName, languageCode, sources =
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
 
   const sourceNote = sources.length > 0
     ? `Do NOT translate or modify any of the following regulatory/source strings, keep them exactly as-is: ${JSON.stringify(sources)}.`
